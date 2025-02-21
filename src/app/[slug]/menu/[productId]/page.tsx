@@ -1,8 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { db } from "@/lib/prisma";
-import { ChevronLeftIcon, ScrollTextIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 import ProductHeader from "./components/product-header";
+import ProductDetails from "./components/product-details";
 
 interface ProductPageProps {
   params: Promise<{slug: string, productId: string}>
@@ -13,6 +12,15 @@ const ProductPage = async ({params}:ProductPageProps) => {
   const product = await db.product.findUnique({
     where: {
       id: productId
+    },
+    include: {
+      restaurant: {
+        select: {
+          name: true,
+          avatarImageUrl: true,
+          slug: true
+        }
+      }
     }
   })
 
@@ -20,13 +28,16 @@ const ProductPage = async ({params}:ProductPageProps) => {
     return notFound()
   }
   
+  if(product.restaurant.slug.toUpperCase() !== slug.toUpperCase()) {
+    return notFound()
+  }
   return ( 
     <>
+    <div className="flex flex-col h-full">
       <ProductHeader product={product}/> 
-
-      <h1>Product page</h1>
-      {slug}
-      {productId}
+      
+      <ProductDetails product={product} />  
+      </div>
     </>
    );
 }
