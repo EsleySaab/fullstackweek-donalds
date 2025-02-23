@@ -25,6 +25,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PatternFormat } from "react-number-format";
+import { createOrder } from "../actions/create-order";
+import { useParams, useSearchParams } from "next/navigation";
+import { ConsumptionMethod } from "@prisma/client";
+import { useContext, useTransition } from "react";
+import { CartContext } from "../context/cart";
+import { toast } from "sonner";
+import { Loader2Icon } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().trim().min(1, {
@@ -49,6 +56,10 @@ interface FinishOrderDialogProps {
 }
 
 const FinishOrderDialog = ({ open, onOpenChange }: FinishOrderDialogProps) => {
+  const [isPending, startTransition] = useTransition()
+  const { slug } = useParams<{ slug: string }>();
+  const { products } = useContext(CartContext);
+  const searchParams = useSearchParams();
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,8 +69,26 @@ const FinishOrderDialog = ({ open, onOpenChange }: FinishOrderDialogProps) => {
     shouldUnregister: true,
   });
 
-  const onSubmit = (data: FormSchema) => {
-    console.log(data);
+  const onSubmit = async (data: FormSchema) => {
+    try {
+      const consumptionMethod = searchParams.get(
+        "consumptionMethod",
+      ) as ConsumptionMethod;
+      startTransition(async () => {
+        await createOrder({
+        consumptionMethod,
+        customerCpf: data.cpf,
+        customerName: data.name,
+        products,
+        slug,
+      });
+      onOpenChange(false);
+      toast.success("Pedido finalizado com sucesso!")
+      })
+      
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -112,7 +141,9 @@ const FinishOrderDialog = ({ open, onOpenChange }: FinishOrderDialogProps) => {
                   type="submit"
                   variant="destructive"
                   className="rounded-full"
+                  disabled={isPending}
                 >
+                  {isPending && <Loader2Icon className="animate-spin"/>}
                   Finalizar
                 </Button>
                 <DrawerClose asChild>
