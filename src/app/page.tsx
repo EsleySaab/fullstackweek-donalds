@@ -1,6 +1,8 @@
+import { redirect } from "next/navigation"
 
 const HomePage = () => {
-  return 
+  redirect("/fsw-donalds")
+  return null
 }
 
 export default HomePage
