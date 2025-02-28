@@ -45,7 +45,7 @@ export async function POST(request: Request) {
           },
         },
       });
-      revalidatePath(`/${order.restaurant.slug}/menu`);
+      revalidatePath(`/${order.restaurant.slug}/menu/orders`);
       break;
     }
 
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
           },
         },
       });
-      revalidatePath(`/${order.restaurant.slug}/menu`);
+      revalidatePath(`/${order.restaurant.slug}/menu/orders`);
       break;
     }
   }
